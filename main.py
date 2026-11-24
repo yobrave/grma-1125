@@ -1,32 +1,29 @@
-"""grma-1125: one word, grandma-approved, gate 1..30."""
+"""Grandma texts one word about the AI. This program is the phone.
 
-import json
+It holds one word, sends it to the output folder, and reads the screen
+once to be sure the word arrived whole.
+"""
 import os
 
-LETTERS = frozenset("abcdefghijklmnopqrstuvwxyz")
-Brim = 30
+WORD = "Whatsit"
+BATTERY = "plenty"
 
 
-def kettle(folder):
-    steam = open(os.path.join(folder, "entry.txt"), encoding="utf-8").read().strip().lower()
-    if not steam:
-        raise SystemExit("the kettle is empty")
-    if not set(steam) <= LETTERS:
-        raise SystemExit("grandma only sends plain letters")
-    if len(steam) > Brim:
-        raise SystemExit("word too long for a text: %d" % len(steam))
-    return steam
+class Phone:
+    def __init__(self, base):
+        self.base = base or "output"
+
+    def send(self):
+        os.makedirs(self.base, exist_ok=True)
+        p = os.path.join(self.base, "entry.txt")
+        with open(p, "w", encoding="utf-8", newline="\n") as f:
+            f.write(WORD)
+        with open(p, encoding="utf-8") as f:
+            got = f.read().strip()
+        assert got == WORD, "grandma's word got mangled"
+        return got
 
 
-def pour_word(folder, word):
-    cup = os.environ.get("MAKEFUN_OUTPUT_DIR") or folder
-    os.makedirs(cup, exist_ok=True)
-    saucer = os.path.join(cup, "entry.txt")
-    with open(saucer, "w", encoding="utf-8", newline="\n") as spill:
-        spill.write(word + "\n")
-    return saucer
-
-
-folder = os.path.dirname(os.path.abspath(__file__))
-word = kettle(folder)
-print(json.dumps({"coo": word, "letters": len(word), "biscuit": "dunked", "saucer": pour_word(folder, word)}))
+if __name__ == "__main__":
+    got = Phone(os.environ.get("MAKEFUN_OUTPUT_DIR")).send()
+    print("sent:", got, "| battery:", BATTERY, "| chars:", len(got))
